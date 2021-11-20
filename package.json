@@ -1,0 +1,24 @@
+{
+  "name": "farm",
+  "version": "1.0.0",
+  "description": "horse farm management schedule management",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eyalring/farm-management.git"
+  },
+  "author": "eyal.ringwald",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eyalring/farm-management/issues"
+  },
+  "homepage": "https://github.com/eyalring/farm-management#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "googleapis": "^87.0.0",
+    "mongoose": "^6.0.12"
+  }
+}

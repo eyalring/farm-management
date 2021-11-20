@@ -1,0 +1,1 @@
+13.11.2021 - imported all data to my Atlas mongoDb , horses , riders and rides from Sep till now.
