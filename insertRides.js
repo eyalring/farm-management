@@ -2,11 +2,63 @@ require('dotenv/config');
 const { google } = require('googleapis')
 const { OAuth2 } = google.auth
 
-const mongo = require('mongoose');
-const { createCollection } = require('./model/');
-const Instructor = require('./model/Instructor');
 
-const numberOfRecords = getNumberOfRecordsPerAccount();
+const mongo = require('mongoose');
+const Horse = require('./model/Horse');
+const Instructor = require('./model/Instructor');
+const { createCollection } = require('./model/ride');
+const Ride = require('./model/ride');
+const Rider = require('./model/rider');
+
+mongo.connect(process.env.DB_CONNECTION_STRING, { useNewUrlParser: true }, () => {
+  console.log('connected to DB!')
+})
+
+const numberOfRecords = getRides();
+
+
+async function getRides(){
+  console.log('getting all riders');
+  const riders = await Rider.find();
+  const ridersMap = new Map(riders.map(i => [i.RiderId, i.PrivateName]));
+  console.log('found ' + ridersMap.size + ' riders');
+  console.log('getting all horses');
+  const horses = await Horse.find();
+  const horsesMap = new Map(horses.map(i => [i.HorseId, i.HorseDec]));
+  console.log('found ' + horses.length + ' horses');
+  console.log('getting all instructors');
+  const instructors = await Instructor.find()
+  const instructorsMap = new Map(instructors.map(i => [i.WorkerID, i.FirstName]));
+  console.log('found ' + instructors.length + ' instructors');
+  const res = await Ride.find({DayofRide:{$regex: /^11.*2021 0:00:00$/}})
+  console.log('found ' + res.length + ' entries in november');
+
+  for(const ride of res){
+    console.log('the instructor ' +convertInstructorToName(ride.WorkerId,instructorsMap) +
+     ' leads the rider :'+ convertRiderToName(ride.RiderId,ridersMap) + 
+     ' with horse name : ' + convertHorseIdToName(ride.HorseId,horsesMap));
+  } 
+}
+
+function convertInstructorToName(WorkerId,instructorsMap){
+  if(instructorsMap.get(WorkerId)){
+    return instructorsMap.get(WorkerId);
+  }else{
+    console.log('Workder id is undefined',WorkerId);
+  }
+}
+
+function convertRiderToName(RiderId,ridersMap){
+  return ridersMap.get(RiderId);
+}
+
+function convertHorseIdToName(HorseId,horsesMap){
+  if(horsesMap.get(HorseId)){
+    return horsesMap.get(HorseId);
+  }else{
+    console.log('HorseId id is undefined',HorseId);
+  }
+}
 
 
 async function insert_calendar(activeHorse,calendarNumber) {
@@ -38,31 +90,3 @@ async function getActiveHorses(activeHorsesChunk,calendarNumber,) {
 }
 
 
-function getNumberOfRecordsPerAccount(){
-  const res = Ride.find().exec((error,response) =>{
-    var activeHorses = new Array();
-    for (const horse of response){
-      if(horse.Active==1){
-       console.log('the horse is active : ',horse.HorseDec) ;
-       activeHorses.push(horse.HorseDec)
-      }
-    }
-    console.log(activeHorses);
-    const pagingSize = Math.floor(activeHorses.length/3) + 1;
-    
-    const activeHorses0 = activeHorses.slice(0,pagingSize);
-    const activeHorses1 = activeHorses.slice(pagingSize,pagingSize*2);
-    const activeHorses2 = activeHorses.slice(pagingSize*2);
-
-
-    console.log('activeHorses0',activeHorses0);
-    console.log('activeHorses1',activeHorses1);
-    console.log('activeHorses2',activeHorses2);
-    
-    const res = getActiveHorses(activeHorses0,0);
-    const res1 = getActiveHorses(activeHorses1,1);
-    const res2 = getActiveHorses(activeHorses2,2);
-
-  });
-  
-}
