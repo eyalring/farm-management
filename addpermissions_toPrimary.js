@@ -1,22 +1,28 @@
 require('dotenv/config');
 const { google } = require('googleapis')
 const { OAuth2 } = google.auth
-
-const oAuth2ClientHorses = new OAuth2(
-  process.env.HORSES_CLIENT_ID,process.env.HORSES_CLIENT_SECRET
-)
-oAuth2ClientHorses.setCredentials({
-  refresh_token: process.env.HORSES_REFRESH_TOKEN,
-})
-
-const calendar = google.calendar({ version: 'v3', auth: oAuth2ClientHorses })
-
-const res = addPermission();
+const initPermission = require('./initCalendars');
+const allCalendarsIds = require('./getAllCalendarsIds');
 
 
-async function addPermission(){
-    const res = await calendar.acl.insert({
-        calendarId: 'fjlap2ugktcbs2mlhsr0a03k5s@group.calendar.google.com',
+const response = run();
+
+async function run(){
+  const calendarsIds = await allCalendarsIds.get();
+  console.log('in add permssion : ' , typeof(calendarsIds));
+  const res = addPermission(calendarsIds);
+
+}
+
+
+
+async function addPermission(calendarsIds){
+  console.log('i reaches hereeee')
+
+  for (const calendar in calendarsIds){
+
+    const res = await calendar.cal.acl.insert({
+        calendarId: calendar.id,
         requestBody: {
              "etag": "my_etag",
              "kind": "calendar#aclRule",
@@ -28,5 +34,6 @@ async function addPermission(){
         },
       });
       console.log(res.data);
+  }
 }
 
